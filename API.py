@@ -1,3 +1,5 @@
+import json
+
 from flask import Flask, render_template, request, jsonify
 from flask_mysqldb import MySQL
 import hashlib
@@ -12,19 +14,6 @@ app.config['MYSQL_DB'] = 'TAXII'
 mysql = MySQL(app)
 
 @app.route('/createDriver', methods=['POST'])
-def index():
-    firstName = 'Moe'
-    lastName = 'yeh'
-    email = 'yeh@gmail.com'
-    username = 'moe'
-    password = 'moe'
-    cur = mysql.connection.cursor()
-    cur.execute("INSERT INTO DRIVERS(firstName, lastName, email, username, password) VALUES (%s, %s, %s, %s, %s)", (firstName, lastName, email, username, password))
-    mysql.connection.commit()
-    cur.close()
-    return 'success'
-
-@app.route('/createDrivers', methods=['POST'])
 def newDriver():
     driverInfo = request.get_json()
     for i in driverInfo:
@@ -40,6 +29,18 @@ def newDriver():
     mysql.connection.commit()
     cur.close()
     return 'success'
+
+@app.route('/deleteDriver/<string:id>', methods=['DELETE'])
+def deleteDriver(id):
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT * FROM DRIVERS WHERE ID=%s", id)
+    if len(cur.fetchall()) > 0:
+        cur.execute("DELETE FROM DRIVERS WHERE ID=%s", id)
+    else:
+        return jsonify({'Error': 'Driver ' + id + ' doesn\'t exist!!!'})
+    mysql.connection.commit()
+    cur.close()
+    return jsonify({'Message': 'The Driver ' + id + ' is deleted successfully'})
 
 
 if __name__ == '__main__':
