@@ -27,8 +27,10 @@ def newDriver():
     cur.execute("INSERT INTO DRIVERS(firstName, lastName, email, username, password) VALUES (%s, %s, %s, %s, %s)",
                 (firstName, lastName, email, username, hash_password))
     mysql.connection.commit()
+    driverId = {'id': cur.lastrowid}
+    driverInfo.update(driverId)
     cur.close()
-    return 'success'
+    return jsonify({'driver': driverInfo})
 
 @app.route('/deleteDriver/<string:id>', methods=['DELETE'])
 def deleteDriver(id):
