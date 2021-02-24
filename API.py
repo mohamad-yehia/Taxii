@@ -1,5 +1,6 @@
 import json
 
+from datetime import date
 from flask import Flask, render_template, request, jsonify
 from Connection import Connection
 from Driver import Driver
@@ -9,6 +10,7 @@ app = Flask(__name__)
 @app.route('/driver', methods=['POST'])
 def newDriver():
     driverInfo = request.get_json()
+    today = date.today()
     for i in driverInfo:
         firstName = i[0]
         lastName = i[1]
@@ -17,8 +19,8 @@ def newDriver():
         password = i[4]
         hash_password = hashlib.md5(password.encode())
     cur = Connection().connection()
-    cur.execute("INSERT INTO DRIVERS(firstName, lastName, email, username, password) VALUES (%s, %s, %s, %s, %s)",
-                (firstName, lastName, email, username, hash_password))
+    cur.execute("insert into drivers(firstName, lastName, email, username, password, created_on, updated_on) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                (firstName, lastName, email, username, hash_password, today, today))
     driverId = {'id': cur.lastrowid}
     driverInfo.update(driverId)
     cur.close()
@@ -27,9 +29,9 @@ def newDriver():
 @app.route('/driver/<string:id>', methods=['DELETE'])
 def deleteDriver(id):
     cur = Connection().connection()
-    cur.execute("SELECT * FROM DRIVERS WHERE ID=%s", [id])
+    cur.execute("SELECT * FROM drivers WHERE ID=%s", [id])
     if len(cur.fetchall()) > 0:
-        cur.execute("DELETE FROM DRIVERS WHERE ID=%s", [id])
+        cur.execute("DELETE FROM drivers WHERE ID=%s", [id])
     else:
         return jsonify({'Error': 'Driver ' + id + ' doesn\'t exist!!!'})
     cur.close()

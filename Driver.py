@@ -1,6 +1,7 @@
 import hashlib
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+db = SQLAlchemy()
 
 class Driver(db.Model):
     __tablename__ = 'drivers'
