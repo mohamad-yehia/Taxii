@@ -1,16 +1,16 @@
 from ConfigDB import Config
-import MySQLdb
+import pymysql
+import os
 
 class Connection:
+
     def __init__(self):
-        self.db=MySQLdb.connect(
-            Config.DATABASE_CONFIG['server'],
-            Config.DATABASE_CONFIG['user'],
-            Config.DATABASE_CONFIG['password'],
-            Config.DATABASE_CONFIG['name']
-            )
+        db_server = os.environ['DB_SERVER']
+        db_user = os.environ['DB_USER']
+        db_password = os.environ['DB_PASSWORD']
+        db_name = os.environ['DB_NAME']
+        self.db=pymysql.connect(host=db_server, user=db_user, passwd=db_password, db=db_name)
         self.db.autocommit(True)
-        self.db.set_character_set('utf8mb4')
 
     def connection(self):
         self.cur = self.db.cursor()
