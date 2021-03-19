@@ -1,4 +1,5 @@
 from ConfigDB import Config
+from pymysql.cursors import DictCursor
 import pymysql
 import os
 
@@ -13,5 +14,5 @@ class Connection:
         self.db.autocommit(True)
 
     def connection(self):
-        self.cur = self.db.cursor()
+        self.cur = self.db.cursor(DictCursor)
         return self.cur

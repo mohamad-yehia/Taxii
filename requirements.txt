@@ -4,3 +4,4 @@ flask_sqlalchemy
 ConfigDB
 cryptography
 pymysql
+marshmallow
