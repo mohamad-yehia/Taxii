@@ -1,5 +1,6 @@
 import enum
 
+
 class Rate(enum.Enum):
     BAD = 1
     NOT_BAD = 2

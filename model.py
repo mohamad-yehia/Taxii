@@ -12,8 +12,8 @@ class Driver(db.Model):
     lastName = db.Column(db.String(80), unique=False, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     username = db.Column(db.String(120), unique=True, nullable=False)
-    password = db.Column(db.String(120), unique=True, nullable=False)
-    rate = db.Column(db.Enum(Rate))
+    password = db.Column(db.String(120), unique=False, nullable=False)
+    rate = db.Column(db.Enum(Rate), nullable=False)
     created_on = db.Column(db.DateTime())
     updated_on = db.Column(db.DateTime())
 
