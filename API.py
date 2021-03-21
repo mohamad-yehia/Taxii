@@ -6,7 +6,7 @@ from flask import Flask, render_template, request, jsonify, make_response
 from marshmallow import ValidationError
 from pymysql import IntegrityError
 
-from Schema import DriverSchema
+from Schema import DriverSchema, DriverRideSchema
 from model import Driver
 from app import app, db
 from Connection import Connection
@@ -30,7 +30,7 @@ def create_driver():
     data['updated_on'] = updated_on
     driver = driver_schema.load(data)
     result = driver_schema.dump(driver.create())
-    return make_response(jsonify({"product": result}), 200)
+    return make_response(jsonify({"driver": result}), 200)
 
 
 @app.route('/driver/<string:id>', methods=['DELETE'])
@@ -62,6 +62,13 @@ def alldrivers():
     drivers = driver_schema.dump(get_drivers)
     return make_response(jsonify({"drivers": drivers}))
 
+@app.route('/driverRide', methods=['POST'])
+def create_driverRide():
+    data = request.get_json()
+    driverRide_schema = DriverRideSchema()
+    driverRide = driverRide_schema.load(data)
+    result = driverRide_schema.dump(driverRide.create())
+    return make_response(jsonify({"ride": result}), 200)
 
 if __name__ == '__main__':
     app.run()
