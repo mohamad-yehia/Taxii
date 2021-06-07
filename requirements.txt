@@ -5,3 +5,4 @@ ConfigDB
 cryptography
 pymysql
 marshmallow
+marshmallow-sqlalchemy==0.25.0
