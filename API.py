@@ -25,6 +25,7 @@ def create_driver():
     updated_on = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
     password = data['password']
     hash_password = hashlib.md5(password.encode())
+    data['password'] = hash_password.hexdigest()
     driver_schema = DriverSchema()
     data['created_on'] = created_on
     data['updated_on'] = updated_on
