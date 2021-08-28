@@ -5,6 +5,9 @@ from datetime import date, datetime
 from flask import Flask, render_template, request, jsonify, make_response
 from marshmallow import ValidationError
 from pymysql import IntegrityError
+from sqlalchemy.orm import load_only
+from sqlalchemy.orm import defer
+from sqlalchemy.orm import undefer
 
 from Schema import DriverSchema, DriverRideSchema
 from model import Driver
@@ -48,10 +51,12 @@ def delete_driver_by_id(id):
 def getDriver(id):
     try:
         get_driver = Driver.query.get(id)
+        print(get_driver)
         if not get_driver:
             return make_response(jsonify({"Message": "Id not found"}))
         driver_schema = DriverSchema()
         driver = driver_schema.dump(get_driver)
+        driver.pop('password')
         return make_response(jsonify({"driver": driver}))
     except ValidationError as err:
         return err.messages, 400
@@ -61,6 +66,8 @@ def alldrivers():
     get_drivers = Driver.query.all()
     driver_schema = DriverSchema(many=True)
     drivers = driver_schema.dump(get_drivers)
+    for i, val in enumerate(drivers):
+        drivers[i].pop('password')
     return make_response(jsonify({"drivers": drivers}))
 
 @app.route('/driverRide', methods=['POST'])
