@@ -4,10 +4,6 @@ import os
 from datetime import date, datetime
 from flask import Flask, render_template, request, jsonify, make_response
 from marshmallow import ValidationError
-from pymysql import IntegrityError
-from sqlalchemy.orm import load_only
-from sqlalchemy.orm import defer
-from sqlalchemy.orm import undefer
 
 from Schema import DriverSchema, DriverRideSchema
 from model import Driver
@@ -24,6 +20,12 @@ def index():
 @app.route('/driver', methods=['POST'])
 def create_driver():
     data = request.get_json()
+    email = data['email']
+    username = data['username']
+    validateDriver = Driver.query.filter(Driver.email == email).first() or Driver.query.filter(Driver.username ==
+                                                                                               username).first()
+    if validateDriver:
+        return make_response(jsonify({"Message": "Driver already exist!!!"}))
     created_on = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
     updated_on = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
     password = data['password']
@@ -34,7 +36,9 @@ def create_driver():
     data['updated_on'] = updated_on
     driver = driver_schema.load(data)
     result = driver_schema.dump(driver.create())
-    return make_response(jsonify({"driver": result}), 200)
+    result.pop('password')
+    returnedResp = jsonify({"driver": result})
+    return make_response(returnedResp, 200)
 
 
 @app.route('/driver/<string:id>', methods=['DELETE'])
@@ -61,6 +65,7 @@ def getDriver(id):
     except ValidationError as err:
         return err.messages, 400
 
+
 @app.route('/drivers', methods=['GET'])
 def alldrivers():
     get_drivers = Driver.query.all()
@@ -70,6 +75,7 @@ def alldrivers():
         drivers[i].pop('password')
     return make_response(jsonify({"drivers": drivers}))
 
+
 @app.route('/driverRide', methods=['POST'])
 def create_driverRide():
     data = request.get_json()
@@ -77,6 +83,7 @@ def create_driverRide():
     driverRide = driverRide_schema.load(data)
     result = driverRide_schema.dump(driverRide.create())
     return make_response(jsonify({"ride": result}), 200)
+
 
 if __name__ == '__main__':
     app.run()
