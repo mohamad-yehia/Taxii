@@ -6,7 +6,7 @@ from flask import Flask, render_template, request, jsonify, make_response
 from marshmallow import ValidationError
 
 from Schema import DriverSchema, DriverRideSchema
-from model import Driver
+from model import Driver, DriverRide
 from app import app, db
 from Connection import Connection
 import hashlib
@@ -55,7 +55,6 @@ def delete_driver_by_id(id):
 def getDriver(id):
     try:
         get_driver = Driver.query.get(id)
-        print(get_driver)
         if not get_driver:
             return make_response(jsonify({"Message": "Id not found"}))
         driver_schema = DriverSchema()
@@ -76,6 +75,42 @@ def alldrivers():
     return make_response(jsonify({"drivers": drivers}))
 
 
+@app.route('/driver/<string:id>/password', methods=['POST'])
+def change_driver_password(id):
+    get_driver = Driver.query.get(id)
+    if not get_driver:
+        return make_response(jsonify({"Message": "Id not found"}))
+    data = request.get_json()
+    updated_on = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+    email = data['email']
+    username = data['username']
+    password = data['password']
+    hash_password = hashlib.md5(password.encode())
+    data['password'] = hash_password.hexdigest()
+    oldPassword = data['password']
+    print(Driver.query.filter(Driver.username == username and Driver.password == oldPassword).first())
+    print(Driver.query.filter(Driver.password == oldPassword).first())
+    emailExist = Driver.query.filter(Driver.email == email).first()
+    if not emailExist:
+        return make_response(jsonify({"Error": "Email doesn't exist !!!!!!"}))
+    else:
+        isUserAndPassValid = Driver.query.filter(Driver.username == username).first() and Driver.query.filter(
+            Driver.password == oldPassword).first()
+        if isUserAndPassValid:
+            return make_response(jsonify({"Error": "Password is correct"}))
+            driver_schema = DriverSchema()
+            data['updated_on'] = updated_on
+            newPassword = data['newPassword']
+            hash_newPassword = hashlib.md5(newPassword.encode())
+            data['password'] = hash_newPassword.hexdigest()
+            driver = driver_schema.load(data)
+            result = driver_schema.dump(driver.create())
+            if result:
+                return make_response(jsonify("Password changed successfully"), 200)
+            else:
+                return make_response(jsonify("Password not changed successfully"), 400)
+
+
 @app.route('/driverRide', methods=['POST'])
 def create_driverRide():
     data = request.get_json()
@@ -83,6 +118,18 @@ def create_driverRide():
     driverRide = driverRide_schema.load(data)
     result = driverRide_schema.dump(driverRide.create())
     return make_response(jsonify({"ride": result}), 200)
+
+@app.route('/driverRide/<string:id>', methods=['GET'])
+def getDriverRide(id):
+    try:
+        get_driver_ride = DriverRide.query.get(id)
+        if not get_driver_ride:
+            return make_response(jsonify({"Message": "Id not found"}))
+        driver_ride_schema = DriverRideSchema()
+        driver_ride = driver_ride_schema.dump(get_driver_ride)
+        return make_response(jsonify({"driver_ride": driver_ride}))
+    except ValidationError as err:
+        return err.messages, 400
 
 
 if __name__ == '__main__':
