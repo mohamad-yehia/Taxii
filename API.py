@@ -81,34 +81,30 @@ def change_driver_password(id):
     if not get_driver:
         return make_response(jsonify({"Message": "Id not found"}))
     data = request.get_json()
-    updated_on = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
     email = data['email']
     username = data['username']
-    password = data['password']
-    hash_password = hashlib.md5(password.encode())
-    data['password'] = hash_password.hexdigest()
     oldPassword = data['password']
-    print(Driver.query.filter(Driver.username == username and Driver.password == oldPassword).first())
-    print(Driver.query.filter(Driver.password == oldPassword).first())
-    emailExist = Driver.query.filter(Driver.email == email).first()
+    newPassword = data['newPassword']
+    hash_oldPassword = hashlib.md5(oldPassword.encode()).hexdigest()
+    hash_newPassword = hashlib.md5(newPassword.encode()).hexdigest()
+    emailExist = Driver.query.filter(Driver.email == email).first() and Driver.query.filter(Driver.username == username).first()
+    if not str(Driver.query.get(id).id) == id:
+        return make_response(jsonify({"Error": "Id in URL doesn't match Driver Id!!!!!!"}))
     if not emailExist:
         return make_response(jsonify({"Error": "Email doesn't exist !!!!!!"}))
     else:
         isUserAndPassValid = Driver.query.filter(Driver.username == username).first() and Driver.query.filter(
-            Driver.password == oldPassword).first()
+            Driver.password == hash_oldPassword).first()
         if isUserAndPassValid:
-            return make_response(jsonify({"Error": "Password is correct"}))
-            driver_schema = DriverSchema()
-            data['updated_on'] = updated_on
-            newPassword = data['newPassword']
-            hash_newPassword = hashlib.md5(newPassword.encode())
-            data['password'] = hash_newPassword.hexdigest()
-            driver = driver_schema.load(data)
-            result = driver_schema.dump(driver.create())
+            updated_on = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+            result = Driver.query.filter(Driver.id == id).update({Driver.password: hash_newPassword, Driver.updated_on: updated_on})
+            db.session.commit()
             if result:
                 return make_response(jsonify("Password changed successfully"), 200)
             else:
                 return make_response(jsonify("Password not changed successfully"), 400)
+        else:
+            return make_response(jsonify("User and Password doesn't match"), 401)
 
 
 @app.route('/driverRide', methods=['POST'])
